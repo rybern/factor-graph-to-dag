@@ -124,8 +124,8 @@ findCovers = nub . map parseCover . solve_all . acyclicEdgeCoverFormula
   where nub = Set.toList . Set.fromList -- removes duplicates
 
 -- Example factor graph with a cycle: it would be invalid to assign B--b.
-exampleGraph :: FactorGraph
-exampleGraph = FactorGraph {
+example1 :: FactorGraph
+example1 = FactorGraph {
     factors = Set.fromList . map Factor $ ["A", "B"]
   , variables = Set.fromList . map Variable $ ["a", "b", "c"]
   , edges = Set.fromList [
@@ -139,11 +139,69 @@ exampleGraph = FactorGraph {
 
 main :: IO ()
 main = do
-  mapM_ print $ findCovers exampleGraph
-
+  mapM_ print $ findCovers example1
 {-
 output:
 
   {(Factor "A",Variable "a"), (Factor "B",Variable "c")}
   {(Factor "A",Variable "b"), (Factor "B",Variable "c")}
 -}
+
+
+-- Example factor graph with no solution
+example2 :: FactorGraph
+example2 = FactorGraph {
+    factors = Set.fromList . map Factor $ ["A", "B"]
+  , variables = Set.fromList . map Variable $ ["a", "b"]
+  , edges = Set.fromList [
+        (Factor "A", Variable "a")
+      , (Factor "A", Variable "b")
+      , (Factor "B", Variable "a")
+      , (Factor "B", Variable "b")
+      ]
+  }
+-- output: []
+
+{-
+Stan eight-schools:
+data {
+  int<lower=0> J;          // number of schools
+  real y[J];               // estimated treatment effect (school j)
+  real<lower=0> sigma[J];  // std err of effect estimate (school j)
+}
+parameters {
+  real mu;
+  real theta[J];
+  real<lower=0> tau;
+}
+model {
+  theta ~ normal(mu, tau);
+  y ~ normal(theta,sigma);
+}
+
+-}
+
+-- Example factor graph of eight-schools
+example3 :: FactorGraph
+example3 = FactorGraph {
+    factors = Set.fromList . map Factor $ ["theta ~ normal(mu, tau)", "y ~ normal(theta,sigma)"]
+  , variables = Set.fromList . map Variable $ ["mu", "theta", "tau", "J", "y", "sigma"]
+  , edges = Set.fromList [
+        (Factor "theta ~ normal(mu, tau)", Variable "mu")
+      , (Factor "theta ~ normal(mu, tau)", Variable "tau")
+      , (Factor "theta ~ normal(mu, tau)", Variable "theta")
+      , (Factor "y ~ normal(theta,sigma)", Variable "theta")
+      , (Factor "y ~ normal(theta,sigma)", Variable "sigma")
+      , (Factor "y ~ normal(theta,sigma)", Variable "y")
+      ]
+  }
+{- output:
+  {(Factor "theta ~ normal(mu, tau)",Variable "mu"),(Factor "y ~ normal(theta,sigma)",Variable "theta")}
+  {(Factor "theta ~ normal(mu, tau)",Variable "mu"),(Factor "y ~ normal(theta,sigma)",Variable "y")}
+  {(Factor "theta ~ normal(mu, tau)",Variable "tau"),(Factor "y ~ normal(theta,sigma)",Variable "sigma")}
+  {(Factor "theta ~ normal(mu, tau)",Variable "tau"),(Factor "y ~ normal(theta,sigma)",Variable "theta")}
+  {(Factor "theta ~ normal(mu, tau)",Variable "tau"),(Factor "y ~ normal(theta,sigma)",Variable "y")}
+  {(Factor "theta ~ normal(mu, tau)",Variable "theta"),(Factor "y ~ normal(theta,sigma)",Variable "sigma")}
+  {(Factor "theta ~ normal(mu, tau)",Variable "theta"),(Factor "y ~ normal(theta,sigma)",Variable "y")}
+-}
+
