@@ -65,16 +65,6 @@ variableEdges g v = Set.filter (\(_, v') -> v' == v) (edges g)
 factorEdges :: FactorGraph -> Factor -> Set Edge
 factorEdges g f = Set.filter (\(f', _) -> f' == f) (edges g)
 
--- A factor is the sampling statement for exactly one variable
-oneSelected :: Set Edge -> Formula
-oneSelected =
-  exactlyOne' select
-
--- A variable has no more than one sampling statement
-atMostOneSelected :: Set Edge -> Formula
-atMostOneSelected =
-  atMostOne' select
-
 -- If an edge is assigned and its factor is reachable,
 -- then its variable is reachable
 assignedReachable :: Set Factor -> Edge -> Formula
@@ -104,11 +94,11 @@ acyclicEdgeCoverFormula g =
   :&&: all' variablewiseFormula (variables g)
   where factorwiseFormula f =
           let edges = factorEdges g f
-          in oneSelected edges
+          in exactlyOne' select edges
              :&&: all' (assignedReachable fs) edges
              :&&: all' (unassignedReachable fs) edges
         variablewiseFormula v =
-          atMostOneSelected (variableEdges g v)
+          atMostOne' select (variableEdges g v)
         fs = factors g
 
 -- The SAT solver returns a map assigning each Prop to a Bool.
@@ -182,6 +172,7 @@ model {
 -}
 
 -- Example factor graph of eight-schools
+-- Note: this isn't actually produced from the stanc3 factor graph code, because it doesn't yet emit data variables
 example3 :: FactorGraph
 example3 = FactorGraph {
     factors = Set.fromList . map Factor $ ["theta ~ normal(mu, tau)", "y ~ normal(theta,sigma)"]
