@@ -37,7 +37,6 @@ main = do
       r = recognizeSet fg
       edgeSelectionSets = findCovers r fg
       dags = map (contract fg) edgeSelectionSets
-  print r
   maybeDag <- queryFilterAll (Set.map snd r) $ Set.fromList dags
   case maybeDag of
     Just dag -> do
