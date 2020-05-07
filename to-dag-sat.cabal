@@ -18,5 +18,9 @@ executable to-dag-sat
   main-is:             Main.hs
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5
-                     , minisat-solver
                      , containers
+                     , graphviz
+                     , minisat-solver
+                     , mtl >= 2.2.2
+                     , text >= 1.2.3.1
+                     , megaparsec
