@@ -45,9 +45,6 @@ main = do
     Nothing ->
       putStrLn "No DAG could be produced."
 
-
-
-
 parseNode :: DotStatement String -> Maybe (DotNode String)
 parseNode (DN n) = Just n
 parseNode _ = Nothing
